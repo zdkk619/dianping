@@ -3,7 +3,8 @@ package com.zdkk.utils;
 import cn.hutool.core.util.StrUtil;
 
 /**
- * @author 虎哥
+ * @author zdkk
+ * @since 2026-09-23
  */
 public class RegexUtils {
     /**

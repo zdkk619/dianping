@@ -7,23 +7,22 @@ import com.zdkk.dto.Result;
 import com.zdkk.entity.Shop;
 import com.zdkk.service.IShopService;
 import com.zdkk.utils.SystemConstants;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import javax.annotation.Resource;
 
 /**
  * <p>
  * 前端控制器
  * </p>
  *
- * @author 虎哥
- * @since 2021-12-22
+ * @author zdkk
+ * @since 2026-09-23
  */
 @RestController
 @RequestMapping("/shop")
 public class ShopController {
 
-    @Resource
+    @Autowired
     public IShopService shopService;
 
     /**

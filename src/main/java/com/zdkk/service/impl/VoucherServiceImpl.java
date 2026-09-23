@@ -1,16 +1,16 @@
 package com.zdkk.service.impl;
 
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.zdkk.dto.Result;
 import com.zdkk.entity.Voucher;
 import com.zdkk.mapper.VoucherMapper;
 import com.zdkk.entity.SeckillVoucher;
 import com.zdkk.service.ISeckillVoucherService;
 import com.zdkk.service.IVoucherService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 /**
@@ -18,13 +18,13 @@ import java.util.List;
  *  服务实现类
  * </p>
  *
- * @author 虎哥
- * @since 2021-12-22
+ * @author zdkk
+ * @since 2026-09-23
  */
 @Service
 public class VoucherServiceImpl extends ServiceImpl<VoucherMapper, Voucher> implements IVoucherService {
 
-    @Resource
+    @Autowired
     private ISeckillVoucherService seckillVoucherService;
 
     @Override

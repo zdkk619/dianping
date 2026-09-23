@@ -4,23 +4,22 @@ package com.zdkk.controller;
 import com.zdkk.dto.Result;
 import com.zdkk.entity.Voucher;
 import com.zdkk.service.IVoucherService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import javax.annotation.Resource;
 
 /**
  * <p>
  *  前端控制器
  * </p>
  *
- * @author 虎哥
- * @since 2021-12-22
+ * @author zdkk
+ * @since 2026-09-23
  */
 @RestController
 @RequestMapping("/voucher")
 public class VoucherController {
 
-    @Resource
+    @Autowired
     private IVoucherService voucherService;
 
     /**

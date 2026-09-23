@@ -10,9 +10,9 @@ import com.zdkk.service.IBlogService;
 import com.zdkk.service.IUserService;
 import com.zdkk.utils.SystemConstants;
 import com.zdkk.utils.UserHolder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 /**
@@ -20,16 +20,16 @@ import java.util.List;
  * 前端控制器
  * </p>
  *
- * @author 虎哥
- * @since 2021-12-22
+ * @author zdkk
+ * @since 2026-09-23
  */
 @RestController
 @RequestMapping("/blog")
 public class BlogController {
 
-    @Resource
+    @Autowired
     private IBlogService blogService;
-    @Resource
+    @Autowired
     private IUserService userService;
 
     @PostMapping

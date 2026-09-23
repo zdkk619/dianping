@@ -6,29 +6,29 @@ import com.zdkk.dto.Result;
 import com.zdkk.entity.UserInfo;
 import com.zdkk.service.IUserInfoService;
 import com.zdkk.service.IUserService;
+import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpSession;
 
 /**
  * <p>
  * 前端控制器
  * </p>
  *
- * @author 虎哥
- * @since 2021-12-22
+ * @author zdkk
+ * @since 2026-09-23
  */
 @Slf4j
 @RestController
 @RequestMapping("/user")
 public class UserController {
 
-    @Resource
+    @Autowired
     private IUserService userService;
 
-    @Resource
+    @Autowired
     private IUserInfoService userInfoService;
 
     /**

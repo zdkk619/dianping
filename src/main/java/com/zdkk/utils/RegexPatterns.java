@@ -1,7 +1,8 @@
 package com.zdkk.utils;
 
 /**
- * @author 虎哥
+ * @author zdkk
+ * @since 2026-09-23
  */
 public abstract class RegexPatterns {
     /**
