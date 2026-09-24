@@ -1,5 +1,8 @@
 package com.zdkk.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
+import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.extension.conditions.query.QueryChainWrapper;
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
@@ -13,7 +16,17 @@ import com.zdkk.utils.RegexUtils;
 import com.zdkk.utils.SystemConstants;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import static com.zdkk.utils.RedisConstants.*;
 
 /**
  * <p>
@@ -27,6 +40,9 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
 
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
     @Override
     public Result sendCode(String phone, HttpSession session) {
         log.info(phone);
@@ -39,9 +55,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         String code = RandomUtil.randomNumbers(6);
 
         // 保存验证码到会话
-        session.setAttribute("code", code);
-        session.setAttribute("phone", phone);
+//        session.setAttribute("code", code);
+//        session.setAttribute("phone", phone);
 
+        // 保存验证码到Redis
+        stringRedisTemplate.opsForValue().set(LOGIN_CODE_KEY + phone, code, Expiration.from(LOGIN_CODE_TTL, TimeUnit.MINUTES));
         // 发送验证码
         // TODO: 发送验证码
         log.info("发送验证码：{}给{}", code, phone);
@@ -77,22 +95,23 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             if (loginForm.getCode() == null || loginForm.getCode().isEmpty()) {
                 return Result.fail("验证码不能为空");
             }
-            if (!loginForm.getCode().equals(session.getAttribute("code"))) {
+            if (!loginForm.getCode().equals(stringRedisTemplate.opsForValue().get(LOGIN_CODE_KEY + phone))) {
                 return Result.fail("验证码不正确");
-            }
-            if (!loginForm.getPhone().equals(session.getAttribute("phone"))) {
-                return Result.fail("手机号与验证码不匹配");
             }
             if (user == null) {
                 user = createUserWithPhone(phone);
             }
         }
         UserDTO userDTO = new UserDTO();
-        userDTO.setIcon(user.getIcon());
-        userDTO.setNickName(user.getNickName());
-        userDTO.setId(user.getId());
-        session.setAttribute("user", userDTO);
-        return Result.ok();
+        BeanUtils.copyProperties(user, userDTO);
+//        session.setAttribute("user", userDTO);
+        String token = UUID.randomUUID().toString();
+        Map<String, Object> map = BeanUtil.beanToMap(userDTO, new HashMap<>(),
+                CopyOptions.create().setIgnoreNullValue(true).setFieldValueEditor((fieldName, fieldValue) -> fieldValue.toString()));
+        stringRedisTemplate.opsForHash().putAll(LOGIN_USER_KEY + token, map);
+        stringRedisTemplate.expire(LOGIN_USER_KEY + token, Expiration.from(LOGIN_USER_TTL, TimeUnit.MINUTES));
+
+        return Result.ok(token);
     }
 
     private User createUserWithPhone(String phone) {
