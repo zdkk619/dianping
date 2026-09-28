@@ -30,6 +30,8 @@ public class CacheClient {
     // 解锁 Lua 脚本（校验持有者，原子删除）
     private static final String UNLOCK_LUA = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
 
+    private static final DefaultRedisScript<Long> UNLOCK_SCRIPT = new DefaultRedisScript<>(UNLOCK_LUA, Long.class);
+
     /**
      * 将任意Java对象序列化为json并存储在string类型的key中，并且可以设置TTL过期时间
      * @param key 缓存键
@@ -190,6 +192,6 @@ public class CacheClient {
     }
 
     private void unlock(String lockKey, String lockValue) {
-        stringRedisTemplate.execute(new DefaultRedisScript<>(UNLOCK_LUA, Long.class), Collections.singletonList(lockKey), lockValue);
+        stringRedisTemplate.execute(UNLOCK_SCRIPT, Collections.singletonList(lockKey), lockValue);
     }
 }

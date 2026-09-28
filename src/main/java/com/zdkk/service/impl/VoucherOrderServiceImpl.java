@@ -10,12 +10,16 @@ import com.zdkk.service.IVoucherOrderService;
 import com.zdkk.utils.RedisConstants;
 import com.zdkk.utils.RedisIdWorker;
 import com.zdkk.utils.UserHolder;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+
+import static com.zdkk.utils.RedisConstants.LOCK_VOUCHER_ORDER_KEY;
 
 /**
  * <p>
@@ -33,6 +37,9 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
     @Autowired
     private RedisIdWorker redisIdWorker;
+
+    @Autowired
+    private RedissonClient redissonClient;
     @Override
     public Result seckillVoucher(Long voucherId) {
         // 查询优惠券
@@ -49,8 +56,16 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         }
 
         Long userId = UserHolder.getUser().getId();
-        synchronized (userId.toString().intern()) {
+        String lockKey = LOCK_VOUCHER_ORDER_KEY + voucherId + ":" + userId;
+        RLock lock = redissonClient.getLock(lockKey);
+        boolean isLocked = lock.tryLock();
+        if (!isLocked) {
+            return Result.fail("请勿重复下单");
+        }
+        try {
             return  ((IVoucherOrderService) AopContext.currentProxy()).createVoucherOrder(voucherId, userId);
+        } finally {
+            lock.unlock();
         }
     }
 
