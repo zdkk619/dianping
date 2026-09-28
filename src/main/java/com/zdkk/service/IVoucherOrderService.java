@@ -1,6 +1,7 @@
 package com.zdkk.service;
 
 import com.baomidou.mybatisplus.spring.service.IService;
+import com.zdkk.dto.Result;
 import com.zdkk.entity.VoucherOrder;
 
 /**
@@ -13,4 +14,7 @@ import com.zdkk.entity.VoucherOrder;
  */
 public interface IVoucherOrderService extends IService<VoucherOrder> {
 
+    Result seckillVoucher(Long voucherId);
+
+    Result createVoucherOrder(Long voucherId, Long userId);
 }
