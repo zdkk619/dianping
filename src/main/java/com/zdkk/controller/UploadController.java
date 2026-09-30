@@ -58,6 +58,8 @@ public class UploadController {
             dir.mkdirs();
         }
         // 生成文件名
-        return StrUtil.format("/blogs/{}/{}/{}.{}", d1, d2, name, suffix);
+        String fileName = StrUtil.format("/blogs/{}/{}/{}.{}", d1, d2, name, suffix);
+        log.info("上传图片的名称：{}", fileName);
+        return fileName;
     }
 }
