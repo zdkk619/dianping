@@ -1,6 +1,7 @@
 package com.zdkk.service;
 
 import com.baomidou.mybatisplus.spring.service.IService;
+import com.zdkk.dto.Result;
 import com.zdkk.entity.Follow;
 
 /**
@@ -13,4 +14,9 @@ import com.zdkk.entity.Follow;
  */
 public interface IFollowService extends IService<Follow> {
 
+    Result follow(Long id, Boolean flag);
+
+    Result isFollowed(Long id);
+
+    Result commonFollowers(Long id);
 }

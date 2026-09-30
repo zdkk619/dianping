@@ -34,4 +34,11 @@ public interface IUserService extends IService<User> {
     Result login(LoginFormDTO loginForm, HttpSession session);
 
     Result logout(String token);
+
+    /**
+     * 根据id查询用户
+     * @param id
+     * @return
+     */
+    Result queryUserById(Long id);
 }

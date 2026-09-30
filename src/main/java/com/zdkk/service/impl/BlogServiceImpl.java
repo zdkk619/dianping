@@ -117,4 +117,11 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         List<UserDTO> userDTOS = ids.stream().map(userDTOMap::get).toList();
         return Result.ok(userDTOS);
     }
+
+    @Override
+    public Result queryBlogByUserId(Integer current, Long userId) {
+        Page<Blog> page = query().eq("user_id", userId)
+                .page(new Page<>(current, SystemConstants.MAX_PAGE_SIZE));
+        return Result.ok(page.getRecords());
+    }
 }
