@@ -10,14 +10,21 @@ import com.zdkk.utils.RedisIdWorker;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.connection.RedisGeoCommands;
+import org.springframework.data.geo.Point;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
+import java.awt.*;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @SpringBootTest
 class DianPingApplicationTests {
@@ -26,6 +33,9 @@ class DianPingApplicationTests {
     private CacheClient cacheClient;
     @Autowired
     private ShopServiceImpl shopServiceImpl;
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
     @Test
     public void testLogicExpire() {
         cacheClient.setWithLogicalExpire(RedisConstants.CACHE_SHOP_KEY + 1, shopServiceImpl.getById(1L), 20L, TimeUnit.SECONDS);
@@ -53,5 +63,21 @@ class DianPingApplicationTests {
         latch.await();
         long end = System.currentTimeMillis();
         System.out.println("time=" + (end - begin));
+    }
+
+    @Test
+    public void testLoadShopData() {
+        List<Shop> list = shopServiceImpl.list();
+        Map<Long, List<Shop>> map = list.stream().collect(Collectors.groupingBy(Shop::getTypeId));
+        map.forEach((typeId, shops) -> {
+            String key = RedisConstants.SHOP_GEO_KEY + typeId;
+            List<RedisGeoCommands.GeoLocation<String>> locations = shops.stream().map(shop -> {
+                return new RedisGeoCommands.GeoLocation<>(
+                        shop.getId().toString(),
+                        new Point(shop.getX(), shop.getY())
+                );
+            }).collect(Collectors.toList());
+            stringRedisTemplate.opsForGeo().add(key, locations);
+        });
     }
 }
