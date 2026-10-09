@@ -7,6 +7,7 @@ import com.zdkk.service.impl.ShopServiceImpl;
 import com.zdkk.utils.CacheClient;
 import com.zdkk.utils.RedisConstants;
 import com.zdkk.utils.RedisIdWorker;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @SpringBootTest
+@Slf4j
 class DianPingApplicationTests {
 
     @Autowired
@@ -79,5 +81,21 @@ class DianPingApplicationTests {
             }).collect(Collectors.toList());
             stringRedisTemplate.opsForGeo().add(key, locations);
         });
+    }
+
+    @Test
+    public void testHLL() {
+        String[] users = new String[1000];
+        String key = "hll";
+        int index = 0;
+        for (int i = 1; i <= 1000000; i++) {
+            users[index++] = "user_" + i;
+            if (i % 1000 == 0) {
+                index = 0;
+                stringRedisTemplate.opsForHyperLogLog().add(key, users);
+            }
+        }
+        Long size = stringRedisTemplate.opsForHyperLogLog().size(key);
+        log.info("size = {}", size);
     }
 }
