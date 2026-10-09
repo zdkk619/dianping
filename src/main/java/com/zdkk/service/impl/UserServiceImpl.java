@@ -12,17 +12,23 @@ import com.zdkk.dto.UserDTO;
 import com.zdkk.entity.User;
 import com.zdkk.mapper.UserMapper;
 import com.zdkk.service.IUserService;
+import com.zdkk.utils.RedisConstants;
 import com.zdkk.utils.RegexUtils;
 import com.zdkk.utils.SystemConstants;
+import com.zdkk.utils.UserHolder;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.connection.BitFieldSubCommands;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -128,6 +134,43 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         }
         UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
         return Result.ok(userDTO);
+    }
+
+    @Override
+    public Result sign() {
+        Long userId = UserHolder.getUser().getId();
+        LocalDateTime time = LocalDateTime.now();
+        String keySuffix = time.format(DateTimeFormatter.ofPattern(":yyyyMM"));
+        String key = USER_SIGN_KEY + userId + keySuffix;
+
+        int dayOfMonth = time.getDayOfMonth();
+        stringRedisTemplate.opsForValue().setBit(key, dayOfMonth - 1, true);
+        return Result.ok();
+    }
+
+    @Override
+    public Result signCount() {
+        Long userId = UserHolder.getUser().getId();
+        LocalDateTime time = LocalDateTime.now();
+        String keySuffix = time.format(DateTimeFormatter.ofPattern(":yyyyMM"));
+        String key = USER_SIGN_KEY + userId + keySuffix;
+        Integer dayOfMonth = time.getDayOfMonth();
+        List<Long> result = stringRedisTemplate.opsForValue().bitField(key,
+                BitFieldSubCommands.create().get(BitFieldSubCommands.BitFieldType.unsigned(dayOfMonth)).valueAt(0));
+        if (result == null || result.isEmpty()) {
+            return Result.fail("签到数据不存在");
+        }
+        Long res = result.getFirst();
+        int count = 0;
+        while (true) {
+            if ((res & 1) == 0) {
+                break;
+            } else {
+                count++;
+            }
+            res >>>= 1;
+        }
+        return Result.ok(count);
     }
 
     private User createUserWithPhone(String phone) {
